@@ -23,7 +23,7 @@ def personnel_type_text(personnel_type):
 
 class StudentSubjectsScoreAPIView(APIView):
 
-    # 03/06/2022 start 14:08 PM - finish 08:43 AM
+    # 03/06/2022 start 14:08 PM - finish
 
     @staticmethod
     def post(request, *args, **kwargs):
@@ -131,6 +131,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
             "grade_point_average": "grade point average",
         }
 
+        # ---------- Calculate Grade Average ---------------------------------------------------------------------------
         def cal_grade_average(subject_data):
             total_credit = 0
             total = 0
@@ -142,6 +143,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
 
             return '%.2f' % grade_average
 
+        # ---------- Calculate Grade of Subject ------------------------------------------------------------------------
         def cal_grade(score):
 
             if 80 <= score <= 100:
@@ -163,8 +165,8 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
 
         if student_id := kwargs.get("id", None):
             try:
+                # ---------- Get Subject's score of Student ------------------------------------------------------------
                 student_score_list = StudentSubjectsScore.objects.filter(student__pk=student_id)
-                # หา ไอดี1 ไม่เจอ
                 full_name = student_score_list.first().student.full_name
                 school = student_score_list.first().student.school_class.school.title
                 context_data = {}
@@ -281,14 +283,18 @@ class PersonnelDetailsAPIView(APIView):
         your_result = []
         if school_title := kwargs.get("school_title", None):
             try:
+                # ---------- Get Personnel Object of School name -------------------------------------------------------
                 personnel = Personnel.objects.filter(school_class__school__title=school_title).order_by(
                     'personnel_type', 'school_class__class_order', 'first_name')
+
                 for index, person in enumerate(personnel):
                     school_title = school_title.capitalize()
                     full_name = person.full_name.title()
 
-                    data = f"{index + 1}. school: {school_title}, role: {personnel_type_text(person.personnel_type)}," \
-                           f" class: {person.school_class.class_order}, name: {full_name}"
+                    data = f"{index + 1}. school: {school_title}," \
+                           f" role: {personnel_type_text(person.personnel_type)}," \
+                           f" class: {person.school_class.class_order}," \
+                           f" name: {full_name}"
 
                     your_result.append(data)
 
@@ -303,7 +309,7 @@ class PersonnelDetailsAPIView(APIView):
 
 class SchoolHierarchyAPIView(APIView):
 
-    # 03/06/2022 start 17:04 PM - finish 19:16 AM
+    # 07/06/2022 start 17:04 PM - finish 19:16 AM
 
     @staticmethod
     def get_personnel_classes(classes):
@@ -933,11 +939,15 @@ class SchoolStructureAPIView(APIView):
 
     def get_child_location(self, parent_school_structure):
         school_structures_child = []
+        # ---------- Get Child of School Structure Object -------------------------------------------------------
         school_structures = SchoolStructure.objects.filter(parent=parent_school_structure).order_by('pk')
+
         for index, school_structure in enumerate(school_structures):
             school_structures_child.append({
                 "title": school_structure.title
             })
+
+            # ---------- Get Child of Parent School Structure Object ---------------------------------------------------
             sub_school_structures = SchoolStructure.objects.filter(parent=school_structure).order_by('pk')
             if len(sub_school_structures) > 0:
                 school_structures_child[index]['sub'] = self.get_child_location(school_structure)
@@ -1124,15 +1134,20 @@ class SchoolStructureAPIView(APIView):
         ]
 
         try:
+            # ---------- Get only Parent of School Structure Object ----------------------------------------------------
             school_structures = SchoolStructure.objects.filter(parent=None).order_by('pk')
             your_result = []
+
             for index, school_structure in enumerate(school_structures):
                 your_result.append({
                     "title": school_structure.title,
                 })
+
+                # ---------- Get Child of School Structure Object ------------------------------------------------------
                 sub_school_structure = SchoolStructure.objects.filter(parent=school_structure).order_by('pk')
                 if len(sub_school_structure) > 0:
                     your_result[index]['sub'] = self.get_child_location(school_structure)
+
                 else:
                     your_result[index]['sub'] = []
 
