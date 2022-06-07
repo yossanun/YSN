@@ -7,32 +7,45 @@ Convert Arabic Number to Roman Number.
 ห้ามใช้ Library อื่น ๆ ที่ต้อง import ในการทำงาน(ยกเว้น ใช้เพื่อการ test การทำงานของฟังก์ชัน).
 
 """
-output = ""
-roman_text = [['M', 1000], ['D', 500], ['C', 100], ['L', 50], ['X', 10], ['V', 5], ['I', 1]]
+
+# Start 07/06/2022 15:39 - Finish 07/06/2022 16:52
+def solve(num):
+    if 0 < num <= 1000:
+        res = ""
+        table = [
+            (1000, "M"),
+            (900, "CM"),
+            (500, "D"),
+            (400, "CD"),
+            (100, "C"),
+            (90, "XC"),
+            (50, "L"),
+            (40, "XL"),
+            (10, "X"),
+            (9, "IX"),
+            (5, "V"),
+            (4, "IV"),
+            (1, "I"),
+        ]
+        for cap, roman in table:
+            d, m = divmod(num, cap)
+            res += roman * d
+            num = m
+
+        return res
+
+    else:
+        print("\n")
+        print("ค่าที่ใส่ไม่อยู่ในช่วงที่กำหนด")
+        print("\n")
+
 
 try:
     while True:
-
         num = int(input("โปรดใส่ค่าที่ต้องการที่นี่: "))
-        if 0 < num <= 1000:
-            lt = []
-            for i in range(len(roman_text)):
-                a = num//roman_text[i][1]
-                if a == 4:
-                    lt.append(roman_text[i][0] + roman_text[i-1][0])
-                else:
-                    [lt.append(roman_text[i][0]) for ch in range(a)]
-                if a != 0:
-                    num &= roman_text[i][1]
-
-            print("\n")
-            print(''.join(lt))
-            print("\n")
-
-        else:
-            print("\n")
-            print("ค่าที่ใส่ไม่อยู่ในช่วงที่กำหนด")
-            print("\n")
+        print("\n")
+        print(solve(num))
+        print("\n")
 
 except ValueError:
     print("\n")

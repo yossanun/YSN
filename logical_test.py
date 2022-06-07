@@ -1,4 +1,3 @@
-
 """
 Convert Number to Thai Text.
 เขียนโปรแกรมรับค่าจาก user เพื่อแปลง input ของ user ที่เป็นตัวเลข เป็นตัวหนังสือภาษาไทย
@@ -9,131 +8,70 @@ Convert Number to Thai Text.
 
 """
 
-# Start 29/5/2022 10:30 - Finish 29/5/2022
 
-# thai_text = {
-#     '0': "ศูนย์",
-#     '1': "หนึ่ง",
-#     '2': "สอง",
-#     '3': "สาม",
-#     '4': "สี่",
-#     '5': "ห้า",
-#     '6': "หก",
-#     '7': "เจ็ด",
-#     '8': "แปด",
-#     '9': "เก้า",
-# }
+# Start 07/06/2022 20:43 - Finish 07/06/2022 22:09
 
-thai_text = [
-    "ศูนย์",
-    "หนึ่ง",
-    "สอง",
-    "สาม",
-    "สี่",
-    "ห้า",
-    "หก",
-    "เจ็ด",
-    "แปด",
-    "เก้า",
-]
+def num_to_words(n):
+    units = [
+        "ศูนย์",
+        "หนึ่ง",
+        "สอง",
+        "สาม",
+        "สี่",
+        "ห้า",
+        "หก",
+        "เจ็ด",
+        "แปด",
+        "เก้า",
+    ]
 
-# unit_text = ["", "หน่วย", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"]
-unit_text = ["สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"]
-unit_numb = [10, 100, 1000, 10000, 100000, 1000000]
+    teens = ["สิบ", "สิบเอ็ด", "สิบสอง", "สิบสาม", "สิบสี่", "สิบห้า", "สิบหก", "สิบเจ็ด", "สิบแปด",
+             "สิบเก้า"]
 
-try:
-    while True:
+    tens = ["ยี่สิบ", "สามสิบ", "สี่สิบ", "ห้าสิบ", "หกสิบ", "เจ็ดสิบ", "แปดสิบ", "เก้าสิบ"]
 
-        input_user = int(input("Please insert your integer here:"))
+    suffix = ["ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"]
+    if n <= 9:
+        return units[n]
 
-        text = ""
+    elif 10 <= n <= 19:
+        return teens[n - 10]
 
-        if 0 <= input_user < 10000000:
-            # input_user = str(input_user)
+    elif 20 <= n <= 99:
+        return tens[(n // 10) - 2] + ((units[n % 10] if n % 10 != 1 else "เอ็ด") if n % 10 != 0 else "")
 
-            if len(str(input_user)) == 1:  # หลักหน่วย
-                print("\n")
-                print(thai_text[input_user])
-                print("\n")
+    elif 100 <= n <= 999:
+        return num_to_words(n // 100) + suffix[0] + (
+            (num_to_words(n % 100) if n % 100 != 1 else "เอ็ด") if n % 100 != 0 else "")
 
-            elif len(str(input_user)) > 1:  # สองหลักขึ้นไป
-                for index, numb in enumerate(unit_numb):
-                    if input_user < numb:
-                        x = numb - input_user
-                        if x == 0:
-                            print(unit_text[index])
+    elif 1000 <= n <= 9999:
+        return num_to_words(n // 1000) + suffix[1] + (
+            (num_to_words(n % 1000) if n % 1000 != 1 else "เอ็ด") if n % 1000 != 0 else "")
+
+    elif 10000 <= n <= 99999:
+        return num_to_words(n // 10000) + suffix[2] + (
+            (num_to_words(n % 10000) if n % 10000 != 1 else "เอ็ด") if n % 10000 != 0 else "")
+
+    elif 100000 <= n <= 999999:
+        return num_to_words(n // 100000) + suffix[3] + (
+            (num_to_words(n % 100000) if n % 100000 != 1 else "เอ็ด") if n % 100000 != 0 else "")
+
+    elif 1000000 <= n < 10000000:
+        return num_to_words(n // 1000000) + suffix[4] + (
+            (num_to_words(n % 1000000) if n % 1000000 != 1 else "เอ็ด") if n % 1000000 != 0 else "")
 
 
-            # elif len(input_user) > 1:  # สองหลักขึ้นไป
-            #
-            #     if len(input_user) == 2:
-            #         if input_user[-1] == '0':
-            #             if input_user[0] == '1':
-            #                 print("\n")
-            #                 print(unit_text[0])
-            #                 print("\n")
-            #
-            #             elif input_user[0] == '2':
-            #                 print("\n")
-            #                 print("ยี่" + unit_text[0])
-            #                 print("\n")
-            #
-            #             else:
-            #                 print("\n")
-            #                 print(thai_text[input_user[0]] + unit_text[0])
-            #                 print("\n")
-            #
-            #         elif input_user[-1] == '1':
-            #
-            #             if input_user[0] == '1':
-            #                 print("\n")
-            #                 print(unit_text[0] + 'เอ็ด')
-            #                 print("\n")
-            #
-            #             elif input_user[0] == '2':
-            #                 print("\n")
-            #                 print("ยี่" + unit_text[0] + 'เอ็ด')
-            #                 print("\n")
-            #
-            #             else:
-            #                 print("\n")
-            #                 print(thai_text[input_user[0]] + unit_text[0] + 'เอ็ด')
-            #                 print("\n")
-            #
-            #         elif input_user[0] == '1':
-            #             print("\n")
-            #             print(unit_text[0] + thai_text[input_user[-1]])
-            #             print("\n")
-            #
-            #         elif input_user[0] == '2':
-            #             print("\n")
-            #             print("ยี่" + unit_text[0] + thai_text[input_user[-1]])
-            #             print("\n")
-            #
-            #         else:
-            #             print("\n")
-            #             print(thai_text[input_user[0]] + unit_text[0] + thai_text[input_user[-1]])
-            #             print("\n")
-            #
-            #     elif len(input_user) == 3:
-            #         pass
-            #
-            #     elif len(input_user) == 4:
-            #         pass
-            #
-            #     elif len(input_user) == 5:
-            #         pass
-            #
-            #     elif len(input_user) == 6:
-            #         pass
-            #
-            #     elif len(input_user) == 7:
-            #         pass
-
+while True:
+    try:
+        num = int(input("โปรดใส่ค่าที่ต้องการที่นี่: "))
+        if 0 <= num < 10000000:
+            print(num_to_words(num))
         else:
-            print("\n")
-            print("Your input is not range zero to ten million.")
+            print('\n')
+            print('ค่าที่ใส่ไม่อยู่ในช่วง!')
+            print('\n')
 
-except ValueError:
-    print("\n")
-    print("Your input's type is not integer.")
+    except ValueError:
+        print('\n')
+        print('ใส่เลขเท่านั้นนะจ้ะ!')
+        print('\n')

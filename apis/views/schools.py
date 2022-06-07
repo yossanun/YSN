@@ -78,8 +78,6 @@ class StudentSubjectsScoreAPIView(APIView):
         # # Create Objects Example
         # DataModel.objects.create(filed_1=value_1, filed_2=value_2, filed_2=value_3)
 
-        StudentSubjectsScore.objects.create(subjects=subjects_title, score=score)
-
         return Response(status=status.HTTP_201_CREATED)
 
 
@@ -142,7 +140,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
 
             grade_average = total / total_credit
 
-            return grade_average
+            return '%.2f' % grade_average
 
         def cal_grade(score):
 
@@ -166,6 +164,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
         if student_id := kwargs.get("id", None):
             try:
                 student_score_list = StudentSubjectsScore.objects.filter(student__pk=student_id)
+                # หา ไอดี1 ไม่เจอ
                 full_name = student_score_list.first().student.full_name
                 school = student_score_list.first().student.school_class.school.title
                 context_data = {}
@@ -186,7 +185,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
 
                 return Response(context_data, status=status.HTTP_200_OK)
 
-            except ObjectDoesNotExist:
+            except:
                 raise NotFound(detail='Object Not Found')
 
         else:
@@ -304,7 +303,31 @@ class PersonnelDetailsAPIView(APIView):
 
 class SchoolHierarchyAPIView(APIView):
 
-    # 03/06/2022 start 16:45 PM - finish : AM
+    # 03/06/2022 start 17:04 PM - finish 19:16 AM
+
+    @staticmethod
+    def get_personnel_classes(classes):
+
+        data_person = []
+        school_classes_person = {}
+
+        # ---------- Get Class's Teacher -------------------------------------------------------------------------------
+        personnel_teacher = Personnel.objects.filter(school_class=classes,
+                                                     personnel_type=PERSONNEL_TYPE_TEACHER,
+                                                     ).order_by('personnel_type', 'first_name')
+        for index, teacher in enumerate(personnel_teacher):
+            school_classes_person[f'{personnel_type_text(teacher.personnel_type)}: {teacher.full_name}'] = data_person
+
+        # ---------- Get Class's Student -------------------------------------------------------------------------------
+        personnel = Personnel.objects.filter(school_class=classes,
+                                             personnel_type__gt=PERSONNEL_TYPE_TEACHER,
+                                             ).order_by('personnel_type', 'first_name')
+        for person in personnel:
+            data_person.append({
+                f'{personnel_type_text(person.personnel_type)}': person.full_name
+            })
+
+        return school_classes_person
 
     def get(self, request, *args, **kwargs):
         """
@@ -884,7 +907,18 @@ class SchoolHierarchyAPIView(APIView):
         ]
 
         try:
+            # ---------- Get School's name -----------------------------------------------------------------------------
+            school_list = Schools.objects.all().order_by('title')
             your_result = []
+            for index, school in enumerate(school_list):
+                your_result.append({
+                    "school": school.title
+                })
+                # ---------- Get School's Class ------------------------------------------------------------------------
+                classes_list = Classes.objects.filter(school=school).order_by('class_order')
+                for classes in classes_list:
+                    your_result[index][f'class {classes.class_order}'] = self.get_personnel_classes(classes)
+
             return Response(your_result, status=status.HTTP_200_OK)
 
         except ObjectDoesNotExist:
@@ -904,8 +938,8 @@ class SchoolStructureAPIView(APIView):
             school_structures_child.append({
                 "title": school_structure.title
             })
-            sub_location = SchoolStructure.objects.filter(parent=school_structure).order_by('pk')
-            if len(sub_location) > 0:
+            sub_school_structures = SchoolStructure.objects.filter(parent=school_structure).order_by('pk')
+            if len(sub_school_structures) > 0:
                 school_structures_child[index]['sub'] = self.get_child_location(school_structure)
 
         return school_structures_child
