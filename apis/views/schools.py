@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-from apis.models import SchoolStructure, Schools, Classes, Personnel, Subjects, StudentSubjectsScore
+from apis.models import SchoolStructure, Schools, Classes, Personnel, StudentSubjectsScore
 
 PERSONNEL_TYPE_TEACHER = 0
 PERSONNEL_TYPE_HEADROOM = 1
@@ -127,7 +127,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
                     "score": "subject's score 2",
                     "grade": "subject's grade 2",
                 },
-            ],
+                ],
             "grade_point_average": "grade point average",
         }
 
@@ -929,8 +929,6 @@ class SchoolHierarchyAPIView(APIView):
 
         except ObjectDoesNotExist:
             return Response({"message": "Object not found."}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(your_result, status=status.HTTP_200_OK)
 
 
 class SchoolStructureAPIView(APIView):
