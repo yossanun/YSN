@@ -25,6 +25,49 @@ class StudentSubjectsScoreAPIView(APIView):
 
     # 03/06/2022 start 14:08 PM - finish
 
+    def get_subject(self, subject_title):
+
+        subject_title = str(subject_title).title()
+
+        if subject_title == 'Math':
+            return 1
+
+        elif subject_title == 'Physics':
+            return 2
+
+        elif subject_title == 'Chemistry':
+            return 3
+
+        elif subject_title == 'Algorithm':
+            return 4
+
+        elif subject_title == 'Coding':
+            return 5
+
+    def get(self, request, *args, **kwargs):
+
+        school_name = request.GET.get("school_name", None)
+        subject_title = request.GET.get("subject_title", None)
+
+        if school_name is None:
+            return Response({"message": "School's name is required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if subject_title is None:
+            return Response({"message": "Subject's Title is required."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        subject_score = StudentSubjectsScore.objects.filter(student__school_class__school__title=school_name,
+                                                            subjects=self.get_subject(subject_title)).order_by("-pk")
+
+        # print('\n'*2)
+        # print(f'{subject_score[:5] = }')
+        # print('\n'*2)
+
+        score_list = [score.context_data for score in subject_score]
+
+        return Response(score_list, status=status.HTTP_200_OK)
+
     @staticmethod
     def post(request, *args, **kwargs):
         """
@@ -67,18 +110,103 @@ class StudentSubjectsScoreAPIView(APIView):
                            {"subject_id": 3, "credit_id": 6}, {"subject_id": 4, "credit_id": 7},
                            {"subject_id": 5, "credit_id": 9}]
 
-        student_first_name = request.data.get("first_name", None)
-        student_last_name = request.data.get("last_name", None)
-        subjects_title = request.data.get("subject_title", None)
-        score = request.data.get("score", None)
-
         # # Filter Objects Example
         # DataModel.objects.filter(filed_1=value_1, filed_2=value_2, filed_2=value_3)
 
         # # Create Objects Example
         # DataModel.objects.create(filed_1=value_1, filed_2=value_2, filed_2=value_3)
 
-        return Response(status=status.HTTP_201_CREATED)
+        # ---------- Get Query Params and Data from Frontend ----------------------------------------------------------
+        school_name = request.GET.get("school_name", None)
+
+        student_first_name = request.data.get("first_name", None)
+        student_last_name = request.data.get("last_name", None)
+        subjects_title = request.data.get("subject_title", None)
+        score = request.data.get("score", None)
+        credit = request.data.get("credit", None)
+
+        # ---------- Check Conditions When Data Error -----------------------------------------------------------------
+        if student_first_name is None:
+            return Response({"message": "Please specify First name."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if student_last_name is None:
+            return Response({"message": "Please specify Last name."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if subjects_title is None:
+            return Response({"message": "Please specify Subject's Title."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if score is None:
+            return Response({"message": "Please specify Score."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if credit is None:
+            return Response({"message": "Please specify Credit."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if type(student_first_name) != str:
+            return Response({"message": "First name must be string."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if type(student_last_name) != str:
+            return Response({"message": "Last name must be string."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if type(subjects_title) != str:
+            return Response({"message": "Subject's title must be string."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if type(score) != int:
+            return Response({"message": "Score must be integer."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not (0 <= int(score) <= 100):
+            return Response({"message": "Score must be in range 0 to 100."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if not (0 < int(credit) <= 3):
+            return Response({"message": "Credit must be 1, 2 or 3."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # ---------- Subject's Title or Student Name Not Found in Database --------------------------------------------
+        if StudentSubjectsScore.objects.filter(student__first_name=student_first_name,
+                                               student__last_name=student_last_name,
+                                               subjects__title=subjects_title).count() == 0:
+
+            return Response({"message": "This Subject's Name or Student's Name Not found."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # ---------- Update New Score in Model StudentSubjectsScore ---------------------------------------------------
+        if StudentSubjectsScore.objects.filter(student__first_name=student_first_name,
+                                               student__last_name=student_last_name,
+                                               subjects__title=subjects_title,
+                                               score__isnull=False):
+
+            subject_score = StudentSubjectsScore.objects.get(student__first_name=student_first_name,
+                                                             student__last_name=student_last_name,
+                                                             subjects__title=subjects_title)
+
+            subject_score.score = score
+
+        # ---------- Create New Score in Model StudentSubjectsScore ---------------------------------------------------
+        elif StudentSubjectsScore.objects.filter(student__first_name=student_first_name,
+                                                 student__last_name=student_last_name,
+                                                 subjects__title=subjects_title,
+                                                 score__isnull=True):
+
+            subject_score = StudentSubjectsScore.objects.create(student_first_name=student_first_name,
+                                                                student_last_name=student_last_name,
+                                                                subjects__title=subjects_title,
+                                                                credit=credit,
+                                                                score=score)
+
+        subject_score.save()
+
+        context = subject_score.context_data
+
+        return Response(context, status=status.HTTP_201_CREATED)
 
 
 class StudentSubjectsScoreDetailsAPIView(APIView):
@@ -127,7 +255,7 @@ class StudentSubjectsScoreDetailsAPIView(APIView):
                     "score": "subject's score 2",
                     "grade": "subject's grade 2",
                 },
-                ],
+            ],
             "grade_point_average": "grade point average",
         }
 

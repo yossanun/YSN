@@ -37,9 +37,24 @@ class Personnel(models.Model):
     def full_name(self):
         return self.first_name + ' ' + self.last_name
 
+    @property
+    def context_data(self):
+        return {
+            'id': self.pk,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'personnel_type': self.personnel_type,
+        }
+
 
 class Subjects(models.Model):
     title = models.CharField(max_length=50, unique=True, null=False, blank=False)
+
+    @property
+    def context_data(self):
+        return {
+            'title': self.title,
+        }
 
 
 class StudentSubjectsScore(models.Model):
@@ -53,3 +68,13 @@ class StudentSubjectsScore(models.Model):
             models.UniqueConstraint(fields=['student', 'subjects'], name='unique_subject_score'),
             # models.UniqueConstraint(fields=['student', 'score'], name='unique_subject_score'),
         ]
+
+    @property
+    def context_data(self):
+        return {
+            'id': self.pk,
+            'student': self.student.context_data,
+            'subjects': self.subjects.context_data,
+            'credit': self.credit,
+            'score': self.score
+        }
