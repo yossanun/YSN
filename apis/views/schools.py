@@ -60,10 +60,6 @@ class StudentSubjectsScoreAPIView(APIView):
         subject_score = StudentSubjectsScore.objects.filter(student__school_class__school__title=school_name,
                                                             subjects=self.get_subject(subject_title)).order_by("-pk")
 
-        # print('\n'*2)
-        # print(f'{subject_score[:5] = }')
-        # print('\n'*2)
-
         score_list = [score.context_data for score in subject_score]
 
         return Response(score_list, status=status.HTTP_200_OK)
